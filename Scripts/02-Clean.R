@@ -364,7 +364,7 @@ importance_vars <- c("importance_indicators", "importance_predict","importance_s
 
 recent_vars <- c("recent_modelling", "recent_analysis")
 
-interaction_vars <- c("cofund_research_sacema", "confund_research_org", "host_org", "host_sacema",
+interaction_vars <- c("cofund_research_sacema", "cofund_research_org", "host_org", "host_sacema",
                       "cosupervise", "non_degree_program", "degree_program", "contract_sacema")
 
 
@@ -374,7 +374,7 @@ df6 <- df5 %>%
   mutate_at(recent_vars, fct_relevel, 
             "In the past month", "In the past year", "In the past 3 years", "In the past 5 years", "Never") %>%
   mutate_at(interaction_vars, fct_relevel, 
-            "Very interested", "Somewhat interested", "Not at all interested", "I am not in a position to know what my organization would be interested in pursuing")
+            "Very interested", "Somewhat  interested", "Not at all interested", "I am not in a position to know what my organization would be interested in pursuing")
 
 
 # ===================
