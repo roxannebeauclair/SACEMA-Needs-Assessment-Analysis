@@ -1,0 +1,689 @@
+---
+title: "National Public Health Modelling and Analysis Needs Assessment"
+author: "Roxanne Beauclair"
+date: "`r lubridate::today()`"
+output: 
+  html_document:
+    toc: TRUE
+    toc_depth: 5
+    theme: lumen
+    highlight: tango
+---
+
+```{r setup, include = FALSE}
+# ===================
+# Print options
+# ===================
+
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(echo = FALSE)
+
+options(table_counter = TRUE)
+options(table_counter_str = "<b>Table %s:</b> ")
+
+# ===================
+# Relative file paths
+# ===================
+wd <- "/Users/roxannebeauclair/Dropbox/Work/Work for SACEMA-Juliet/Needs Assessment/SACEMA-Needs-Assessment-Analysis"
+rdata <- paste0(wd, "/Data/Raw") 
+cdata <- paste0(wd, "/Data/Cleaned")
+script <- paste0(wd, "/Scripts")
+
+cleandf <- paste0(cdata, "/02-cleaned.rda")
+
+fxn <- paste0(script, "/00-Functions.R")
+
+# ====================
+# Loading dependencies
+# ====================
+source(fxn)
+
+InstallLoad("tidyverse", "Gmisc", "knitr", "kableExtra", "janitor")
+
+# =============
+# Load datasets
+# =============
+load(cleandf)
+
+```
+
+<style>
+
+table, td, th {
+  
+  font-size: 10px;
+  white-space: nowrap;
+  
+}
+
+</style>
+
+<br>
+<br>
+
+## **DRAFT REPORT**
+
+### **Notes**
+
+If you would like to use one of these tables in a word document, all you need to do is: 1. highlight the whole table; 2. copy it; 3. Move your cursor to the spot you want the table in your word document, and then; 4. "paste special" in the Edit menu, and; 5. choose "formatted text". This will paste the table into the document and you will be able to edit the tables as you see fit. If the format looks a lot weirder than the html version, sometimes it helps to copy and paste from a different browser. For me it works well to copy and paste from Safari and Firefox.<br>
+
+### **Meetings with stakeholders**
+
+Since the end of November I have conducted meetings on behalf of SACEMA with various individuals from the following insitutions: Sefako Makgatho Health Sciences University; Centre for Vaccines and Immunology (CVI) at the National Institute for Communicable Diseases (NICD); UNAIDS; Perinatal HIV Research Unit (PHRU); Centre for Hospial-Associated Infections, Anti-microbial Resistance and Mycoses (CHARM) at NICD; the Medical Research Council (MRC) Respiratory and Meningeal Pathogens Research Unit (RMPRU); SAMRC/WITS Centre for Economics and Decision Science (PRICELESS-SA); WITS Reproductive Health and HIV Insititute (WRHI) Ezintsha; University of Pretoria (UP) School of Health Systems and Public Health (SHSPH); and the National Cancer Registry (NCR) at NICD. <br>
+
+In those meetings we discussed various potential opportunities for collaborations and research questions that require modelling and/or more advanced statistical analysis: <br>
+
+* PHRU is doing studies that involve implementing different TB interventions. One is a household contact-tracing intervention and one targets high-risk groups (e.g. persons living with HIV) and tests them for TB irrespective of symptoms. They would like to see how these interventions could impact TB incidence over time. <br>
+* There is poor surveillance of hospital-aquired infections. Thus, CHARM wants to do a point-prevalence study for a single day across a variety of hospitals to see how many cases of a particular hospital-acquired infection (e.g. UTIs) they pick up. They would then like to use this data to form the basis of a model that estimates how large the burden is in South Africa. The model will need to take into account complexities like seasonality and transmissability. <br>
+* RMPRU and the National Advisory Group on Immunizations (NAGI) have several research questions that would involve dynamical models. One possibility for collaboration is to see if it is possible for South Africa to transition to reduced vaccine schedules with the pneumococcal and HPV vaccines. <br>
+* The NCR does most of its surveillance with a pathology-based registry. However, this type of registry underestimates the incidence and prevalence of some cancers. They want to work with SACEMA to model what incidence rates should be for different cancer types based upon their population-based registry for cancer. <br>
+
+<br>
+
+### **Survey Results**
+
+<br>
+
+```{r part_uni_tab_setup, include = FALSE}
+
+tab1 <- recap_uni_catvar(df = df, catvar = highest_degree)
+tab2 <- recap_uni_catvar(df = df, catvar = affiliation_type)
+tab3 <- recap_uni_catvar(df = df, catvar = role)
+tab4 <- recap_uni_numvar(df = df, numvar = time_org)
+tab5 <- recap_uni_catvar(df = df, catvar = sector)
+tab6 <- recap_uni_numvar(df = df, numvar = time_publichealth)
+
+part_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                      tab5, tab6)
+
+```
+
+
+```{r part_uni_tab}
+
+htmlTable(part_uni_tab,
+          caption = "<b>Frequency distributions of participant characteristics<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Highest degree completed<b>",
+                     "<b>Type of organization of primary affiliation<b>",
+                     "<b>Role within organization<b>",
+                     "<b>Length of time at organization (in years)<b>",
+                     "<b>Primary sector of public health work<b>",
+                     "<b>Length of time in public health sector (in years)<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6)))
+
+```
+
+<br>
+
+In total, `r nrow(df)` participants consented to and took the survey. Table 1 shows that almost all of the participants in this survey have a graduate degree, with `r tab1[2, 2]`% having a doctoral degree and `r tab2[1, 2]`% working for an academic organization. A plurality of participants were managers, directors, or heads of department within their organization. Some of the organizations that participants were affiliated with were: NICD, WHRI Ezintsha, PHRU, SMU, the South African National Blood Service, University of Cape Town (UCT), UNAIDS, and UP. 
+
+<br>
+<br>
+
+
+
+```{r importance_uni_tab_setup, include = FALSE}
+
+tab1 <- recap_uni_catvar(df = df, catvar = importance_indicators)
+tab2 <- recap_uni_catvar(df = df, catvar = importance_predict)
+tab3 <- recap_uni_catvar(df = df, catvar = importance_studydesign)
+tab4 <- recap_uni_catvar(df = df, catvar = importance_compare_effects)
+tab5 <- recap_uni_catvar(df = df, catvar = importance_compare_costs)
+tab6 <- recap_uni_catvar(df = df, catvar = importance_strategy)
+tab7 <- recap_uni_catvar(df = df, catvar = importance_impact)
+tab8 <- recap_uni_catvar(df = df, catvar = importance_assess_risk)
+tab9 <- recap_uni_catvar(df = df, catvar = importance_communication)
+tab10 <- recap_uni_catvar(df = df, catvar = importance_understand_spread)
+
+
+
+importance_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                            tab5, tab6, tab7, tab8,
+                            tab9, tab10)
+
+```
+
+
+```{r importance_uni_tab}
+
+htmlTable(importance_uni_tab,
+          caption = "<b>Frequency distributions for the importance of modelling and analysis for the organization to complete the following tasks:<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Developement of new indicators or measurements of individual and population health<b>",
+                     "<b>Predicting future trends in the occurrence of disease<b>",
+                     "<b>Evaluating potential study designs<b>",
+                     "<b>Comparing the effects of prevention and control measures on disease occurence<b>",
+                     "<b>Comparing costs of different policy scenarios<b>",
+                     "<b>Guiding strategic or operational aspects of intervention roll-out<b>",
+                     "<b>Retrospectively evaluating the impact of public health interventions<b>",
+                     "<b>Assessing the risk of future public health events (such as outbreaks)<b>",
+                     "<b>Communicating expectations about disease incidence or intervention impact<b>",
+                     "<b>Understanding processes of disease spread<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7), nrow(tab8),
+                       nrow(tab9), nrow(tab10)))
+
+```
+
+<br>
+
+For nearly all tasks reported in Table 2, the majority of participants in this survey felt that modelling was 'Very important'. The exception was that only `r tab8[3, 2]`% believed that modelling was 'Very important' for assessing the risk of future public health events. Over three-quarters of participants (`r tab4[2, 2]`%) thought that that modelling and analysis were 'Very important' for comparing the effects of prevention and control measures on disease occurence.
+
+<br>
+<br>
+
+```{r meet_needs_uni_tab_setup, include = FALSE}
+df1 <- df %>%
+  filter(org_dataman == "No")
+
+df2 <- df %>%
+  filter(org_datavis == "No")
+
+df3 <- df %>%
+  filter(org_stats == "No")
+
+df4 <- df %>%
+  filter(org_model == "No")
+
+df5 <- df %>%
+  filter(perform_research == "Yes")
+  
+
+tab1 <- recap_uni_catvar(df = df, catvar = organization_research)
+tab2 <- recap_uni_catvar(df = df, catvar = organization_decisions)
+tab3 <- recap_uni_catvar(df = df, catvar = perform_research)
+tab4 <- recap_uni_catvar(df = df5, catvar = perform_stats)
+tab5 <- recap_uni_catvar(df = df5, catvar = perform_models)
+tab6 <- recap_uni_catvar(df = df, catvar = org_dataman)
+tab7 <- recap_uni_catvar(df = df1, catvar = org_dataman_whynot)
+tab8 <- recap_uni_catvar(df = df, catvar = org_datavis)
+tab9 <- recap_uni_catvar(df = df2, catvar = org_datavis_whynot)
+tab10 <- recap_uni_catvar(df = df, catvar = org_stats)
+tab11 <- recap_uni_catvar(df = df3, catvar = org_stats_whynot)
+tab12 <- recap_uni_catvar(df = df, catvar = org_model)
+tab13 <- recap_uni_catvar(df = df4, catvar = org_model_whynot)
+
+
+
+meet_needs_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                            tab5, tab6, tab7, tab8,
+                            tab9, tab10, tab11, tab12,
+                            tab13)
+
+```
+
+
+```{r meet_needs_uni_tab}
+
+htmlTable(meet_needs_uni_tab,
+          caption = "<b>Frequency distributions for participants' organization's ability to meet various needs with regards to data<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Organization involved in health-related research<b>",
+                     "<b>Organization involved in health-related decision-making<b>",
+                     "<b>Participant engages in research activities<b>",
+                     "<b>Participant does their own statistical analysis<b>",
+                     "<b>Participant does their own modelling<b>",
+                     "<b>Organization has sufficient in-house capacity to meet their data management needs<b>",
+                     "<b>Why they do not have sufficient capacity to meet their data management needs<b>",
+                     "<b>Organization has sufficient in-house capacity to meet their data visualisation needs<b>",
+                     "<b>Why they do not have sufficient capactity to meet their data visualisation needs<b>",
+                     "<b>Organization has sufficient in-house capacity to meet their statistical analysis needs<b>",
+                     "<b>Why they do not have sufficient capactity to meet their statistical analysis needs<b>",
+                     "<b>Organization has sufficient in-house capacity to meet their modelling needs<b>",
+                     "<b>Why they do not have sufficient capactity to meet their modelling needs<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7), nrow(tab8),
+                       nrow(tab9), nrow(tab10), nrow(tab11), nrow(tab12),
+                       nrow(tab13)))
+
+```
+
+<br>
+
+Nearly all participants engaged in research activities, as well as belonged to an organization that was involved in health-related research and decision-making (Table 3). Among those engaged in research activities, `r tab4[2, 2]`% do their own analysis, while only `r tab5[2, 2]`% do their own modelling. A majority of participants said their organization has sufficient capacity to meet their statistical analysis needs. However, `r tab6[1, 2]`% said there was not in-house capacity to meet data management needs, primarily because of inadequacies in human resources planning (`r tab7[1, 2]`%) or organizational budget limitations (`r tab7[4, 2]`%). For `r tab8 [1, 2]`%, in-house capacity to meet data visualization needs was also lacking, mostly because of organizational budget limitations (`r tab9[3, 2]`%). None of the participants had sufficient in-house capacity at their organization for modelling needs. The most commonly cited reason for this was that they had variable or sporadic need for modelling at their organization (`r tab13[7, 2]`%).
+
+<br>
+<br>
+
+```{r workingothers_uni_tab_setup, include = FALSE}
+df1 <- df %>%
+  filter(recent_modelling != "Never")
+
+df2 <- df %>%
+  filter(recent_analysis != "Never")
+
+
+tab1 <- recap_uni_catvar(df = df, catvar = recent_modelling)
+tab2 <- recap_uni_catvar(df = df1, catvar = model_collab_loc)
+tab3 <- recap_uni_catvar(df = df1, catvar = model_collab_fund)
+tab4 <- recap_uni_catvar(df = df, catvar = recent_analysis)
+tab5 <- recap_uni_catvar(df = df2, catvar = analysis_collab_loc)
+tab6 <- recap_uni_catvar(df = df2, catvar = analysis_collab_fund)
+tab7 <- recap_uni_catvar(df = df, catvar = needs_not_met)
+
+workingothers_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                            tab5, tab6, tab7)
+
+```
+
+
+```{r workingothers_uni_tab}
+
+htmlTable(workingothers_uni_tab,
+          caption = "<b>Frequency distributions of experiences working with individuals outside of the organization to meet participant's modelling and analysis needs<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Recency of working with individuals outside of organization to meet needs for modelling<b>",
+                     "<b>Location of modelling collabrorators<b>",
+                     "<b>How the modelling collaboration was conducted<b>",
+                     "<b>Recency of working with individuals outside of organization to meet needs for analysis<b>",
+                     "<b>Location of analysis collabrorators<b>",
+                     "<b>How the analysis collaboration was conducted<b>",
+                     "<b>Had to make a public health policy decision when modelling and/or analysis needs were not met<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7)))
+
+```
+
+<br>
+
+Most participants had worked with individuals outside of their organization to meet their needs for modelling at some point in the previous 5 years (`r 100 - tab1[4, 2]`%) (Table 4). These external collaborators were sometimes within and outside of South Africa (`r tab2[1, 2]`%) and were mostly funded collaborations (`r tab3[2, 2]`%). For meeting analysis needs, `r 100 - tab4[5, 2]`% of participants had worked with individuals outside of their organization withing the past 5 years. Those collaborations were primarily with collaborators within South Africa (`r tab5[3, 2]`%) and `r tab6[2, 2]`% were funded. <br>
+
+<br>
+<br>
+
+```{r reasons_modelling_uni_tab_setup, include = FALSE}
+df1 <- df %>%
+  filter(recent_modelling %in% c("In the past 3 years", 
+                                 "In the past 5 years",
+                                 "Never"))
+
+
+tab1 <- recap_uni_catvar(df = df1, catvar = sufficient_capacity_modelling)
+tab2 <- recap_uni_catvar(df = df1, catvar = no_org_modelling)
+tab3 <- recap_uni_catvar(df = df1, catvar = working_difficult_modelling)
+tab4 <- recap_uni_catvar(df = df1, catvar = no_funding_modelling)
+tab5 <- recap_uni_catvar(df = df1, catvar = bureau_barriers_modelling)
+tab6 <- recap_uni_catvar(df = df1, catvar = not_injob_modelling)
+
+
+reasons_modelling_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                            tab5, tab6)
+
+```
+
+
+```{r reasons_modelling_uni_tab}
+
+htmlTable(reasons_modelling_uni_tab,
+          caption = "<b>Reasons for not working with individuals outside of organization in order to meet modelling needs among those who said they did not do it in the past year<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Sufficient in-house capacity<b>",
+                     "<b>Unable to identify external organizations that could meet the needs<b>",
+                     "<b>Working with analysts is difficult<b>",
+                     "<b>Insufficient funding to support collaborations<b>",
+                     "<b>Bureaucratic barriers (e.g. restrictions on data-sharing)<b>",
+                     "<b>Conducting or overseeing analysis work is not within my job description<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6)))
+
+```
+
+<br>
+
+Tables 5 and 6 show some of the commonly cited reasons for not working with individuals to meet modelling and analysis needs in the past year. Insufficient funding (`r tab4[2, 2]`%), bureaucratic barriers (`r tab5[2, 2]`%), and being unable to identify external organizations that could meet the need (`r tab2[2, 2]`%) were the most common reasons for not working with modellers outside of their organization.
+
+<br>
+<br>
+
+```{r reasons_analysis_uni_tab_setup, include = FALSE}
+df1 <- df %>%
+  filter(recent_analysis %in% c("In the past 3 years", 
+                                 "In the past 5 years",
+                                 "Never"))
+
+
+tab1 <- recap_uni_catvar(df = df1, catvar = sufficient_capacity_analysis)
+tab2 <- recap_uni_catvar(df = df1, catvar = no_org_analysis)
+tab3 <- recap_uni_catvar(df = df1, catvar = working_difficult_analysis)
+tab4 <- recap_uni_catvar(df = df1, catvar = no_funding_analysis)
+tab5 <- recap_uni_catvar(df = df1, catvar = bureau_barriers_analysis)
+tab6 <- recap_uni_catvar(df = df1, catvar = not_injob_analysis)
+
+
+reasons_analysis_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                            tab5, tab6)
+
+```
+
+
+```{r reasons_analysis_uni_tab}
+
+htmlTable(reasons_analysis_uni_tab,
+          caption = "<b>Reasons for not working with individuals outside of organization in order to meet analysis needs among those who said they did not do it in the past year<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Sufficient in-house capacity<b>",
+                     "<b>Unable to identify external organizations that could meet the needs<b>",
+                     "<b>Working with modellers is difficult<b>",
+                     "<b>Insufficient funding to support collaborations<b>",
+                     "<b>Bureaucratic barriers (e.g. restrictions on data-sharing)<b>",
+                     "<b>Conducting or overseeing analysis work is not within my job description<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6)))
+
+```
+
+<br>
+
+Having sufficient in-house capacity (`r tab1[2, 2]`%) and insufficient funding to support collaborations (`r tab4[2, 2]`%) were common reasons people did not work with external analysts in the previous year.
+
+<br>
+<br>
+
+
+```{r healthareas_uni_tab_setup, include = FALSE}
+
+tab1 <- recap_uni_catvar(df = df, catvar = alc)
+tab2 <- recap_uni_catvar(df = df, catvar = amr)
+tab3 <- recap_uni_catvar(df = df, catvar = biosecurity)
+tab4 <- recap_uni_catvar(df = df, catvar = cancer)
+tab5 <- recap_uni_catvar(df = df, catvar = diabetes)
+tab6 <- recap_uni_catvar(df = df, catvar = emergency)
+tab7 <- recap_uni_catvar(df = df, catvar = food_safety)
+tab8 <- recap_uni_catvar(df = df, catvar = health_systems)
+tab9 <- recap_uni_catvar(df = df, catvar = hiv)
+tab10 <- recap_uni_catvar(df = df, catvar = hypertension)
+tab11 <- recap_uni_catvar(df = df, catvar = injury)
+tab12 <- recap_uni_catvar(df = df, catvar = maternal)
+tab13 <- recap_uni_catvar(df = df, catvar = mental)
+tab14 <- recap_uni_catvar(df = df, catvar = nutrition)
+tab15 <- recap_uni_catvar(df = df, catvar = occupational)
+tab16 <- recap_uni_catvar(df = df, catvar = outbreak)
+tab17 <- recap_uni_catvar(df = df, catvar = tb)
+tab18 <- recap_uni_catvar(df = df, catvar = vaccine)
+tab19 <- recap_uni_catvar(df = df, catvar = vector)
+
+
+
+healthareas_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                            tab5, tab6, tab7, tab8,
+                            tab9, tab10, tab11, tab12,
+                            tab13, tab14, tab15, tab16,
+                            tab17, tab18, tab19)
+
+```
+
+
+```{r healthareas_uni_tab}
+
+htmlTable(healthareas_uni_tab,
+          caption = "<b>Health areas where participants think there is the most potential for modelling and analysis to improve health in South Africa<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Alcohol and substance abuse<b>",
+                     "<b>Anti-microbial resistance<b>",
+                     "<b>Biosecurity<b>",
+                     "<b>Cancer<b>",
+                     "<b>Diabetes<b>",
+                     "<b>Emergency medicine<b>",
+                     "<b>Food safety<b>",
+                     "<b>Health systems research and planning<b>",
+                     "<b>HIV and STIs<b>",
+                     "<b>Hypertension and other cardiovascular diseases<b>",
+                     "<b>Injury and violence prevention<b>",
+                     "<b>Maternal and reproductive health<b>",
+                     "<b>Mental health<b>",
+                     "<b>Nutrition and hunger elimination<b>",
+                     "<b>Occupational health<b>",
+                     "<b>Outbreak/epidemic response<b>",
+                     "<b>Tuberculosis<b>",
+                     "<b>Vaccine-prevenable diseases<b>",
+                     "<b>Vector-borne and zoonotic infections<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7), nrow(tab8),
+                       nrow(tab9), nrow(tab10), nrow(tab11), nrow(tab12),
+                       nrow(tab13), nrow(tab14), nrow(tab15), nrow(tab16),
+                       nrow(tab17), nrow(tab18), nrow(tab19)))
+
+```
+
+<br>
+
+A majority of participants (`r tab9[2, 2]`%) identified HIV and STIs as a health area where modelling and analysis has the most potential to improve health in South Africa (Table 7). Additionally, participants thought that vaccine-preventable illnesses (`r tab18[2, 2]`%), cancer (`r tab4[2, 2]`%), anti-microbial resistance (`r tab2[2, 2]`%), mental health (`r tab13[2, 2]`%) and tuberculosis (`r tab17[2, 2]`%) were health areas that modelling and analysis could improve health in South Africa.  
+
+<br>
+<br>
+
+```{r applications_uni_tab_setup, include = FALSE}
+
+tab1 <- recap_uni_catvar(df = df, catvar = bioinformatics)
+tab2 <- recap_uni_catvar(df = df, catvar = me)
+tab3 <- recap_uni_catvar(df = df, catvar = forecasting)
+tab4 <- recap_uni_catvar(df = df, catvar = transmission)
+tab5 <- recap_uni_catvar(df = df, catvar = measurement)
+tab6 <- recap_uni_catvar(df = df, catvar = surveillance)
+tab7 <- recap_uni_catvar(df = df, catvar = rapid_response)
+tab8 <- recap_uni_catvar(df = df, catvar = risk_assessment)
+tab9 <- recap_uni_catvar(df = df, catvar = scenario_analysis)
+tab10 <- recap_uni_catvar(df = df, catvar = simulation)
+tab11 <- recap_uni_catvar(df = df, catvar = tactical_modelling)
+
+applications_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                             tab5, tab6, tab7, tab8,
+                             tab9, tab10, tab11)
+
+```
+
+
+```{r applications_uni_tab}
+
+htmlTable(applications_uni_tab,
+          caption = "<b>Applications of modelling and analysis that have the most potential to improve health in South Africa<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Bioinformatics<b>",
+                     "<b>Evaluation and assessment / Monitoring & Evaluation<b>",
+                     "<b>Forecasting of future public health events<b>",
+                     "<b>Fundamental investigation of transmission dynamics<b>",
+                     "<b>Improving diagnostics and/ or the measurement and interpretation of biomarkers<b>",
+                     "<b>Improving population-based surveillance<b>",
+                     "<b>Responding quickly to emerging disease threats<b>",
+                     "<b>Risk assessment<b>",
+                     "<b>Scenario analysis to compare policy options<b>",
+                     "<b>Simulation for study design, including clinical trials<b>",
+                     "<b>Tactical and operational modelling<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7), nrow(tab8),
+                       nrow(tab9), nrow(tab10), nrow(tab11)))
+
+```
+
+<br>
+
+Table 8 shows which applications of modelling and analysis participants thought have the most potential to improve health in South Africa. The top application participants identified was for improving population-based surveillance (`r tab6[2, 2]`%). Other common applications chosen included: forecasting of future public health events (`r tab6[2, 2]`%), scenario analysis to compare policy options (`r tab9[2, 2]`%) and tactical and operational modelling (`r tab11[2, 2]`%).
+
+<br>
+<br>
+
+```{r quantskills_uni_tab_setup, include = FALSE}
+
+tab1 <- recap_uni_catvar(df = df, catvar = quant_skills_sa)
+tab2 <- recap_uni_catvar(df = df, catvar = quant_skills_org)
+
+
+quantskills_uni_tab <- rbind(tab1, tab2)
+
+```
+
+
+```{r quantskills_uni_tab}
+
+htmlTable(quantskills_uni_tab,
+          caption = "<b>Most important quantitative skillsets<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>The modelling and analysis skills that South Africa needs to strengthen and improve<b>",
+                     "<b>The quantitative skillset that participant wants organization members to have that they do not currently have<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2)))
+
+```
+
+<br>
+
+Participants thought that the most important quantitative skillset that South Africa needed to strengthen and improve was how to interpret surveillance data and results from models and statistical analysis (`r tab1[4, 2]`%). However, the skillset that they though their organization colleagues should have that they currently do not have was modelling (`r tab2[4, 2]`%).
+
+<br>
+<br>
+
+
+```{r preferences_uni_tab_setup, include = FALSE}
+
+tab1 <- recap_uni_catvar(df = df, catvar = meet_needs_how)
+tab2 <- recap_uni_catvar(df = df, catvar = pref_collab_loc)
+tab3 <- recap_uni_catvar(df = df, catvar = skills_dm)
+tab4 <- recap_uni_catvar(df = df, catvar = skills_dv)
+tab5 <- recap_uni_catvar(df = df, catvar = skills_stats)
+tab6 <- recap_uni_catvar(df = df, catvar = skills_modelling)
+tab7 <- recap_uni_catvar(df = df, catvar = skills_automation)
+tab8 <- recap_uni_catvar(df = df, catvar = skills_interpretation)
+
+
+preferences_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                             tab5, tab6, tab7, tab8)
+
+```
+
+
+```{r preferences_uni_tab}
+
+htmlTable(preferences_uni_tab,
+          caption = "<b>Preferences for meeting modelling and analysis needs<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Prefer modelling and analysis needs to be met by:<b>",
+                     "<b>Prefer to work with:<b>",
+                     "<b>If ever in a position to outsource, would be willing to outsource data management<b>",
+                     "<b>If ever in a position to outsource, would be willing to outsource data visualization<b>",
+                     "<b>If ever in a position to outsource, would be willing to outsource statistical analysis<b>",
+                     "<b>If ever in a position to outsource, would be willing to outsource modelling<b>",
+                     "<b>If ever in a position to outsource, would be willing to outsource automation of analysis<b>",
+                     "<b>If ever in a position to outsource, would be willing to outsource interpretation of surveillance data and results from models and analysis<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7), nrow(tab8)))
+
+```
+
+<br>
+
+A plurality of participants preferred for their modelling and analysis needs to be met with in-house capacity (`r tab1[3, 2]`%) (Table 10). However, if they outsource their modelling and analysis needs they preferred to work with a national organization, within South Africa (`r tab2[2, 2]`%). The most common skillsets that participants said they would be willing to outsource if they were in a position to do so, would be modelling (`r tab6[2, 2]`%) and automation of analysis (`r tab7[2, 2]`%).
+
+<br>
+<br>
+
+```{r sacema_interactions_uni_tab_setup, include = FALSE}
+df1 <- df %>%
+  filter(interactions_sacema == "Yes")
+  
+  
+tab1 <- recap_uni_catvar(df = df, catvar = aware_sacema)
+tab2 <- recap_uni_catvar(df = df, catvar = interactions_sacema)
+tab3 <- recap_uni_catvar(df = df1, catvar = sacema_introduction)
+tab4 <- recap_uni_catvar(df = df1, catvar = sacema_research)
+tab5 <- recap_uni_catvar(df = df1, catvar = sacema_policy_consult)
+tab6 <- recap_uni_catvar(df = df1, catvar = sacema_technical_consult)
+tab7 <- recap_uni_catvar(df = df1, catvar = sacema_service_provision)
+tab8 <- recap_uni_catvar(df = df1, catvar = sacema_other)
+tab9 <- recap_uni_catvar(df = df, catvar = aware_other_orgs)
+tab10 <- recap_uni_catvar(df = df, catvar = interested_sacema)
+
+
+sacema_interactions_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                                     tab5, tab6, tab7, tab8,
+                                     tab9, tab10)
+
+```
+
+
+```{r sacema_interactions_uni_tab}
+
+htmlTable(sacema_interactions_uni_tab,
+          caption = "<b>Awareness of and interactions with SACEMA<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Aware of the work SACEMA does<b>",
+                     "<b>Has had previous interactions with SACEMA<b>",
+                     "<b>Had an introductory meeting with one of SACEMA's staff members<b>",
+                     "<b>Collaborated on a research project with SACEMA<b>",
+                     "<b>Requested a consultation with SACEMA about a policy decision<b>",
+                     "<b>Requested a consultation with SACEMA about a technical matter<b>",
+                     "<b>Contracted a SACEMA staff member for service provision<b>",
+                     "<b>Had other interactions with SACEMA not mentioned above<b>",
+                     "<b>Has awareness of other organizations in South Africa that conduct modelling and analysis to improve health<b>",
+                     "<b>Interested in future interactions with SACEMA<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7), nrow(tab8),
+                       nrow(tab9), nrow(tab10)))
+
+```
+
+<br>
+
+Nearly all of the participants were aware of the work SACEMA does (Table 11). Nearly three-quarters had had some sort of interaction with SACEMA previously (`r tab2[2, 2]`%) and `r tab10[2, 2]`% were interested in future interactions with SACEMA. Almost half of participants had previously collaborated with SACEMA on a research project (`r tab4[2, 2]`%). Most participants (`r tab9[2, 2]`%) were aware of other organizations that conduct modelling and analysis in South Africa. Some of the specific organizations that were identified were: Center for Statistical Analysis and Research (CESAR), PERCEPT, the UCT Centre for Infectious Diseases and Epidemiology Research (CIDER), and the WITS Health Economics and Epidemiology Research Office (HE2RO).
+
+<br>
+<br>
+
+```{r type_interactions_uni_tab_setup, include = FALSE}
+df1 <- df %>%
+  filter(interested_sacema == "Yes")
+  
+  
+tab1 <- recap_uni_catvar(df = df1, catvar = cofund_research_sacema)
+tab2 <- recap_uni_catvar(df = df1, catvar = cofund_research_org)
+tab3 <- recap_uni_catvar(df = df1, catvar = host_org)
+tab4 <- recap_uni_catvar(df = df1, catvar = host_sacema)
+tab5 <- recap_uni_catvar(df = df1, catvar = cosupervise)
+tab6 <- recap_uni_catvar(df = df1, catvar = non_degree_program)
+tab7 <- recap_uni_catvar(df = df1, catvar = degree_program)
+tab8 <- recap_uni_catvar(df = df1, catvar = contract_sacema)
+
+type_interactions_uni_tab <- rbind(tab1, tab2, tab3, tab4,
+                                     tab5, tab6, tab7, tab8)
+
+```
+
+
+```{r type_interactions_uni_tab}
+
+htmlTable(type_interactions_uni_tab,
+          caption = "<b>Interest in different types of interactions with SACEMA<b/>",
+          header = c("n", "%"),
+          ctable = TRUE,
+          rgroup = c("<b>Co-funding a research post based at SACEMA<b>",
+                     "<b>Having SACEMA co-fund a research post based at participant's organization<b>",
+                     "<b>Hosting a seconded SACEMA staff member<b>",
+                     "<b>Having a staff member be seconded at SACEMA<b>",
+                     "<b>Co-supervising a post-doctoral fellow with SACEMA<b>",
+                     "<b>Developing a joint training programme (non-degree)<b>",
+                     "<b>Developing a joint degree programme with SACEMA<b>",
+                     "<b>Contracting SACEMA's support for modelling and analysis needs<b>"),
+          n.rgroup = c(nrow(tab1), nrow(tab2), nrow(tab3), nrow(tab4),
+                       nrow(tab5), nrow(tab6), nrow(tab7), nrow(tab8)))
+
+```
+
+<br>
+
+Among those who said they were interested in having future interactions with SACEMA, a majority were 'Very interested' in: having SACEMA co-fund a research post based at the participant's organization (`r tab2[1, 2]`%), hosting a seconded SACEMA staff member (`r tab3[1, 2]`%), co-supervising a post-doctoral fellow with SACEMA (`r tab5[1, 2]`%), and contracting SACEMA's support for modelling and analysis needs (`r tab8[1, 2]`%).
+
+<br>
+<br>
+
